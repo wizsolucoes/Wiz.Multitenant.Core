@@ -1,0 +1,50 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- master
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+stages:
+- stage: build
+  jobs:
+    - job:
+      steps:
+      - task: UseGitVersion@5
+        displayName: GitVersion 
+        inputs:
+          versionSpec: 'x.x.x'
+
+      - task: DotNetCoreCLI@2
+        displayName: Restore
+        inputs:
+          command: 'restore'
+          projects: '**/Wiz.Multitenant.Core.csproj'
+
+      - task: DotNetCoreCLI@2
+        displayName: Build
+        inputs:
+          command: 'build'
+          projects: '**/Wiz.Multitenant.Core.csproj'
+          arguments: '-c Release /p:Version=$(GitVersion.NuGetVersion)'
+
+      - task: DotNetCoreCLI@2
+        displayName: Pack
+        inputs:
+          command: 'pack'
+          configuration: 'Release'
+          packagesToPack: '**/Wiz.Multitenant.Core.csproj'
+          nobuild: true
+          versioningScheme: byEnvVar 
+          versionEnvVar: GitVersion.NuGetVersion
+
+      - task: PublishBuildArtifacts@1
+        displayName: Publish the package
+        inputs:
+          PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+          ArtifactName: 'drop'
+          publishLocation: 'Container'
