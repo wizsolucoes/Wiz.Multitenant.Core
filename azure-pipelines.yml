@@ -35,7 +35,7 @@ jobs:
     inputs:
       command: 'build'
       projects: '**/Wiz.Multitenant.Core.csproj'
-      arguments: '-c Release /p:Version=$(GitVersion.NuGetVersion)'
+      arguments: '-c Release /p:Version=1.1.$(Build.BuildNumber)'
 
   - task: DotNetCoreCLI@2
     displayName: Pack
@@ -44,8 +44,10 @@ jobs:
       configuration: 'Release'
       packagesToPack: '**/Wiz.Multitenant.Core.csproj'
       nobuild: true
-      versioningScheme: byEnvVar 
-      versionEnvVar: GitVersion.NuGetVersion
+      versioningScheme: byPrereleaseNumber 
+      majorVersion: '1'
+      minorVersion: '1'
+      patchVersion: '$(Build.BuildNumber)' 
 
   - task: NuGetToolInstaller@1
     displayName: Use NuGet >= 5.x
