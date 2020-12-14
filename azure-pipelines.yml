@@ -18,13 +18,16 @@ jobs:
   steps:
   - checkout: self
 
+  - task: UseDotNet@2
+    displayName: 'Use dotnet ${{parameters.dotNetVersion}}'
+    inputs:
+      packageType: 'sdk'
+      version: '3.x'
+
   - task: NuGetCommand@2
     inputs:
       command: 'restore'
       restoreSolution: '**/*.sln'
-      feedsToUse: 'select'
-      vstsFeed: '09b2821a-2950-4eff-a722-dbc8adf4da55'
-      noCache: true
 
   - task: NuGetCommand@2
     inputs:
