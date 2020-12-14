@@ -21,7 +21,7 @@ jobs:
     displayName: PowerShell Script
     inputs:
       targetType: inline
-      script: "[xml] $xdoc = Get-Content \"Wiz.Multitenant.Core.nuspec\"\n$xdoc.package.metadata.version = \"$(MajorVesion).$(MinorVerion).$(Build.BuildNumber)\"\n$xdoc.Save(\"Wiz.Multitenant.Core.nuspec\") "
+      script: "[xml] $xdoc = Get-Content \"Wiz.Multitenant.Core.nuspec\"\n$xdoc.package.metadata.version = \"1.1.$(Build.BuildNumber)\"\n$xdoc.Save(\"Wiz.Multitenant.Core.nuspec\") "
 
   - task: DotNetCoreCLI@2
     displayName: Restore
