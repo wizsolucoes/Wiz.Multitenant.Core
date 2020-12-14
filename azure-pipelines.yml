@@ -17,57 +17,24 @@ jobs:
     vmImage: vs2017-win2016
   steps:
   - checkout: self
-  - task: PowerShell@2
-    displayName: PowerShell Script
-    inputs:
-      targetType: inline
-      script: "[xml] $xdoc = Get-Content \"Wiz.Multitenant.Core.nuspec\"\n$xdoc.package.metadata.version = \"1.1.$(Build.BuildNumber)\"\n$xdoc.Save(\"Wiz.Multitenant.Core.nuspec\") "
-
-  - task: DotNetCoreCLI@2
-    displayName: Restore
-    inputs:
-      command: 'restore'
-      projects: '**/Wiz.Multitenant.Core.csproj'
-
-
-  - task: DotNetCoreCLI@2
-    displayName: Build
-    inputs:
-      command: 'build'
-      projects: '**/Wiz.Multitenant.Core.csproj'
-      arguments: '-c Release'
-
-  - task: DotNetCoreCLI@2
-    displayName: Pack
-    inputs:
-      command: 'pack'
-      configuration: 'Release'
-      packagesToPack: '**/Wiz.Multitenant.Core.csproj'
-      nobuild: true
-      versioningScheme: byPrereleaseNumber 
-      majorVersion: '1'
-      minorVersion: '1'
-      patchVersion: '$(Build.BuildNumber)' 
-
-  - task: PublishBuildArtifacts@1
-    displayName: 'Publish the package'
-    inputs:
-      PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-      ArtifactName: 'drop'
-      publishLocation: 'Container'
-
-  - task: NuGetToolInstaller@1
-    displayName: Use NuGet >= 5.x
-    inputs:
-      versionSpec: '>= 5.x'
-      checkLatest: true
 
   - task: NuGetCommand@2
-    displayName: NuGet pack
     inputs:
-      command: push
-      nuGetFeedType: external
-      feedPublish: $(feed)
-      externalEndpoint: $(endpoint)
-      searchPatternPack: $(Build.ArtifactStagingDirectory)/**/*.nupkg;!$(Build.ArtifactStagingDirectory)/**/*.symbols.nupkg
-      versioningScheme: byPrereleaseNumber
+      command: 'restore'
+      restoreSolution: '**/*.sln'
+      feedsToUse: 'select'
+      vstsFeed: '09b2821a-2950-4eff-a722-dbc8adf4da55'
+      noCache: true
+
+  - task: NuGetCommand@2
+    inputs:
+      command: 'pack'
+      packagesToPack: '**/*.csproj'
+      versioningScheme: 'off'
+
+  - task: NuGetCommand@2
+    inputs:
+      command: 'push'
+      packagesToPush: '$(Build.ArtifactStagingDirectory)/**/*.nupkg;!$(Build.ArtifactStagingDirectory)/**/*.symbols.nupkg'
+      nuGetFeedType: 'external'
+      publishFeedCredentials: 'nuget.org'
