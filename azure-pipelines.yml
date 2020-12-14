@@ -35,7 +35,7 @@ jobs:
     inputs:
       command: 'build'
       projects: '**/Wiz.Multitenant.Core.csproj'
-      arguments: '-c Release /p:Version=1.1.$(Build.BuildNumber)'
+      arguments: '-c Release /p:Version=1.1.$(Build.BuildNumber).0'
 
   - task: DotNetCoreCLI@2
     displayName: Pack
