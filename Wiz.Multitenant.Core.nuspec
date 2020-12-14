@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
-    <id>Wiz.Multitenant.Core</id>
+    <id>Wiz.Multitenant</id>
     <version>1.0.0.0</version>
     <description>
-      Wiz DotNet Multitenant Core
+      Wiz DotNet Multitenant
     </description>
     <authors>Wiz</authors>
     <owners>Wiz</owners>
