@@ -1,43 +1,50 @@
-# Variable 'MajorVesion' was defined in the Variables tab
-# Variable 'MinorVerion' was defined in the Variables tab
-# Variable 'PathProjects' was defined in the Variables tab
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
 trigger:
-  branches:
-    include:
-    - master
-resources:
-  repositories:
-  - repository: self
-    type: git
-    ref: master
-jobs:
-- job: Job_1
-  displayName: Deploy
-  pool:
-    vmImage: ubuntu-latest
-  steps:
-  - checkout: self
+- master
 
-  - task: UseDotNet@2
-    displayName: 'Use dotnet 3.x'
-    inputs:
-      packageType: 'sdk'
-      version: '3.x'
+pool:
+  vmImage: 'ubuntu-latest'
 
-  - task: NuGetCommand@2
-    inputs:
-      command: 'restore'
-      restoreSolution: '**/*.sln'
+stages:
+- stage: build
+  jobs:
+    - job:
+      steps:
+      - task: UseGitVersion@5
+        displayName: GitVersion 
+        inputs:
+          versionSpec: 'x.x.x'
 
-  - task: NuGetCommand@2
-    inputs:
-      command: 'pack'
-      packagesToPack: '**/*.csproj'
-      versioningScheme: 'off'
+      - task: DotNetCoreCLI@2
+        displayName: Restore
+        inputs:
+          command: 'restore'
+          projects: '**/Wiz.Multitenant.Core.csproj'
 
-  - task: NuGetCommand@2
-    inputs:
-      command: 'push'
-      packagesToPush: '$(Build.ArtifactStagingDirectory)/**/*.nupkg;!$(Build.ArtifactStagingDirectory)/**/*.symbols.nupkg'
-      nuGetFeedType: 'external'
-      publishFeedCredentials: 'nuget.org'
+      - task: DotNetCoreCLI@2
+        displayName: Build
+        inputs:
+          command: 'build'
+          projects: '**/Wiz.Multitenant.Core.csproj'
+          arguments: '-c Release /p:Version=$(GitVersion.NuGetVersion)'
+
+      - task: DotNetCoreCLI@2
+        displayName: Pack
+        inputs:
+          command: 'pack'
+          configuration: 'Release'
+          packagesToPack: '**/Wiz.Multitenant.Core.csproj'
+          nobuild: true
+          versioningScheme: byEnvVar 
+          versionEnvVar: GitVersion.NuGetVersion
+
+      - task: PublishBuildArtifacts@1
+        displayName: Publish the package
+        inputs:
+          PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+          ArtifactName: 'drop'
+          publishLocation: 'Container'
