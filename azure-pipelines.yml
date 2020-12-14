@@ -19,7 +19,7 @@ jobs:
   - checkout: self
 
   - task: UseDotNet@2
-    displayName: 'Use dotnet ${{parameters.dotNetVersion}}'
+    displayName: 'Use dotnet 3.x'
     inputs:
       packageType: 'sdk'
       version: '3.x'
