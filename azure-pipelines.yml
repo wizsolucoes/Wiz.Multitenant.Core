@@ -49,6 +49,13 @@ jobs:
       minorVersion: '1'
       patchVersion: '$(Build.BuildNumber)' 
 
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish the package'
+    inputs:
+      PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+      ArtifactName: 'drop'
+      publishLocation: 'Container'
+
   - task: NuGetToolInstaller@1
     displayName: Use NuGet >= 5.x
     inputs:
@@ -62,5 +69,5 @@ jobs:
       nuGetFeedType: external
       feedPublish: $(feed)
       externalEndpoint: $(endpoint)
-      searchPatternPack: Wiz.Multitenant.Core.nuspec
+      searchPatternPack: $(Build.ArtifactStagingDirectory)/**/*.nupkg;!$(Build.ArtifactStagingDirectory)/**/*.symbols.nupkg
       versioningScheme: byPrereleaseNumber
