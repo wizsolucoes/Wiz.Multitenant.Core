@@ -1,50 +1,64 @@
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
-
+# Variable 'MajorVesion' was defined in the Variables tab
+# Variable 'MinorVerion' was defined in the Variables tab
+# Variable 'PathProjects' was defined in the Variables tab
 trigger:
-- master
+  branches:
+    include:
+    - master
+resources:
+  repositories:
+  - repository: self
+    type: git
+    ref: master
+jobs:
+- job: Job_1
+  displayName: Deploy
+  pool:
+    vmImage: vs2017-win2016
+  steps:
+  - checkout: self
+  - task: PowerShell@2
+    displayName: PowerShell Script
+    inputs:
+      targetType: inline
+      script: "[xml] $xdoc = Get-Content \"Wiz.Multitenant.Core.nuspec\"\n$xdoc.package.metadata.version = \"$(MajorVesion).$(MinorVerion).$(Build.BuildNumber)\"\n$xdoc.Save(\"Wiz.Multitenant.Core.nuspec\") "
 
-pool:
-  vmImage: 'ubuntu-latest'
+  - task: DotNetCoreCLI@2
+    displayName: Restore
+    inputs:
+      command: 'restore'
+      projects: '**/Wiz.Multitenant.Core.csproj'
 
-stages:
-- stage: build
-  jobs:
-    - job:
-      steps:
-      - task: UseGitVersion@5
-        displayName: GitVersion 
-        inputs:
-          versionSpec: 'x.x.x'
 
-      - task: DotNetCoreCLI@2
-        displayName: Restore
-        inputs:
-          command: 'restore'
-          projects: '**/Wiz.Multitenant.Core.csproj'
+  - task: DotNetCoreCLI@2
+    displayName: Build
+    inputs:
+      command: 'build'
+      projects: '**/Wiz.Multitenant.Core.csproj'
+      arguments: '-c Release /p:Version=$(GitVersion.NuGetVersion)'
 
-      - task: DotNetCoreCLI@2
-        displayName: Build
-        inputs:
-          command: 'build'
-          projects: '**/Wiz.Multitenant.Core.csproj'
-          arguments: '-c Release /p:Version=$(GitVersion.NuGetVersion)'
+  - task: DotNetCoreCLI@2
+    displayName: Pack
+    inputs:
+      command: 'pack'
+      configuration: 'Release'
+      packagesToPack: '**/Wiz.Multitenant.Core.csproj'
+      nobuild: true
+      versioningScheme: byEnvVar 
+      versionEnvVar: GitVersion.NuGetVersion
 
-      - task: DotNetCoreCLI@2
-        displayName: Pack
-        inputs:
-          command: 'pack'
-          configuration: 'Release'
-          packagesToPack: '**/Wiz.Multitenant.Core.csproj'
-          nobuild: true
-          versioningScheme: byEnvVar 
-          versionEnvVar: GitVersion.NuGetVersion
+  - task: NuGetToolInstaller@1
+    displayName: Use NuGet >= 5.x
+    inputs:
+      versionSpec: '>= 5.x'
+      checkLatest: true
 
-      - task: PublishBuildArtifacts@1
-        displayName: Publish the package
-        inputs:
-          PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-          ArtifactName: 'drop'
-          publishLocation: 'Container'
+  - task: NuGetCommand@2
+    displayName: NuGet pack
+    inputs:
+      command: push
+      nuGetFeedType: external
+      feedPublish: $(feed)
+      externalEndpoint: $(endpoint)
+      searchPatternPack: Wiz.Multitenant.Core.nuspec
+      versioningScheme: byPrereleaseNumber
